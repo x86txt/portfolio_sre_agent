@@ -1,0 +1,30 @@
+{
+  "receiver": "aitriage",
+  "status": "firing",
+  "alerts": [
+    {
+      "status": "firing",
+      "labels": {
+        "alertname": "ServiceSaturationHigh",
+        "service": "checkout",
+        "env": "prod",
+        "severity": "critical",
+        "metric": "cpu_utilization"
+      },
+      "annotations": {
+        "summary": "CPU saturation is extremely high.",
+        "observed": 100,
+        "threshold": 95,
+        "unit": "%",
+        "signal_type": "saturation"
+      },
+      "startsAt": "2025-01-01T00:00:00Z",
+      "endsAt": "2025-01-01T01:00:00Z",
+      "generatorURL": "https://prometheus.example/graph"
+    }
+  ],
+  "groupLabels": { "alertname": "ServiceSaturationHigh" },
+  "commonLabels": { "service": "checkout", "env": "prod" }
+}
+
+

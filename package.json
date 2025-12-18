@@ -1,0 +1,19 @@
+{
+  "name": "ai-triage",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "cli"
+  ],
+  "scripts": {
+    "dev": "echo 'See README: run backend (uvicorn) then `bun run frontend:dev`'",
+    "frontend:dev": "bun run --cwd frontend dev",
+    "frontend:build": "bun run --cwd frontend build",
+    "frontend:preview": "bun run --cwd frontend preview",
+    "cli": "bun run --cwd cli dev --",
+    "fmt": "echo 'TODO: add formatter (optional)'"
+  },
+  "dependencies": {
+    "@astrojs/upgrade": "^0.6.2"
+  }
+}

@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    /* Yellow accent (works in both light + dark) */
+    --primary: 47 96% 53%;
+    --primary-foreground: 222.2 84% 4.9%;
+
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
+
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 47 96% 53%;
+
+    --radius: 0.75rem;
+  }
+
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 222.2 84% 6.5%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222.2 84% 6.5%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 47 96% 53%;
+    --primary-foreground: 222.2 84% 4.9%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 47 96% 53%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+@layer components {
+  @keyframes impact-glow-yellow {
+    0% {
+      box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.0);
+    }
+    50% {
+      box-shadow: 0 0 32px 0 rgba(250, 204, 21, 0.35);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(250, 204, 21, 0.0);
+    }
+  }
+
+  @keyframes impact-glow-red {
+    0% {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.0);
+    }
+    50% {
+      box-shadow: 0 0 28px 0 rgba(239, 68, 68, 0.45);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.0);
+    }
+  }
+
+  .impact-glow-major {
+    animation: impact-glow-yellow 1.8s ease-in-out infinite;
+  }
+
+  .impact-glow-critical {
+    animation: impact-glow-red 1.6s ease-in-out infinite;
+  }
+}
+
+

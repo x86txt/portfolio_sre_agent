@@ -1,0 +1,18 @@
+{
+  "incident": {
+    "id": "bs-999",
+    "name": "checkout: saturation critical",
+    "service": "checkout",
+    "env": "prod",
+    "severity": "critical",
+    "metric": "cpu_utilization",
+    "observed": 99.8,
+    "threshold": 95,
+    "unit": "%",
+    "started_at": "2025-01-01T00:00:00Z",
+    "url": "https://betterstack.example/incidents/bs-999",
+    "labels": { "signal_type": "saturation" }
+  }
+}
+
+

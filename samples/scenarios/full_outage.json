@@ -1,0 +1,67 @@
+[
+  {
+    "provider": "prometheus",
+    "payload": {
+      "receiver": "aitriage",
+      "status": "firing",
+      "alerts": [
+        {
+          "status": "firing",
+          "labels": {
+            "alertname": "ServiceErrorRateHigh",
+            "service": "checkout",
+            "env": "prod",
+            "severity": "critical",
+            "metric": "http_5xx_rate"
+          },
+          "annotations": {
+            "summary": "5xx error rate is above SLO.",
+            "observed": 7.2,
+            "threshold": 1.0,
+            "unit": "%",
+            "signal_type": "errors"
+          },
+          "startsAt": "2025-01-01T00:00:00Z",
+          "endsAt": "2025-01-01T01:00:00Z",
+          "generatorURL": "https://prometheus.example/graph"
+        }
+      ]
+    }
+  },
+  {
+    "provider": "datadog",
+    "payload": {
+      "event_type": "monitor_alert",
+      "alert_type": "critical",
+      "title": "checkout: p99 latency high",
+      "text": "Latency is above SLO.",
+      "tags": ["service:checkout", "env:prod"],
+      "metric": "http_request_duration_p99",
+      "observed": 1800,
+      "threshold": 400,
+      "unit": "ms",
+      "url": "https://app.datadoghq.com/monitors/999"
+    }
+  },
+  {
+    "provider": "betterstack",
+    "payload": {
+      "incident": {
+        "id": "bs-999",
+        "name": "checkout: saturation critical",
+        "service": "checkout",
+        "env": "prod",
+        "severity": "critical",
+        "metric": "cpu_utilization",
+        "observed": 99.8,
+        "threshold": 95,
+        "unit": "%",
+        "started_at": "2025-01-01T00:00:00Z",
+        "url": "https://betterstack.example/incidents/bs-999",
+        "labels": { "signal_type": "saturation" }
+      }
+    }
+  }
+]
+
+

@@ -1,0 +1,14 @@
+{
+  "event_type": "monitor_alert",
+  "alert_type": "critical",
+  "title": "checkout: p99 latency high",
+  "text": "Latency is above SLO.",
+  "tags": ["service:checkout", "env:prod"],
+  "metric": "http_request_duration_p99",
+  "observed": 1800,
+  "threshold": 400,
+  "unit": "ms",
+  "url": "https://app.datadoghq.com/monitors/999"
+}
+
+

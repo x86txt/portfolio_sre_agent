@@ -1,0 +1,67 @@
+[
+  {
+    "provider": "prometheus",
+    "payload": {
+      "receiver": "aitriage",
+      "status": "firing",
+      "alerts": [
+        {
+          "status": "firing",
+          "labels": {
+            "alertname": "ServiceSaturationHigh",
+            "service": "checkout",
+            "env": "prod",
+            "severity": "critical",
+            "metric": "cpu_utilization"
+          },
+          "annotations": {
+            "summary": "CPU saturation is extremely high.",
+            "observed": 100,
+            "threshold": 95,
+            "unit": "%",
+            "signal_type": "saturation"
+          },
+          "startsAt": "2025-01-01T00:00:00Z",
+          "endsAt": "2025-01-01T01:00:00Z",
+          "generatorURL": "https://prometheus.example/graph"
+        }
+      ]
+    }
+  },
+  {
+    "provider": "datadog",
+    "payload": {
+      "event_type": "monitor_alert",
+      "alert_type": "info",
+      "title": "checkout: p99 latency within SLO",
+      "text": "Latency is stable and within SLO.",
+      "tags": ["service:checkout", "env:prod"],
+      "metric": "http_request_duration_p99",
+      "observed": 180,
+      "threshold": 400,
+      "unit": "ms",
+      "url": "https://app.datadoghq.com/monitors/123"
+    }
+  },
+  {
+    "provider": "betterstack",
+    "payload": {
+      "incident": {
+        "id": "bs-001",
+        "name": "checkout: error rate normal",
+        "service": "checkout",
+        "env": "prod",
+        "severity": "info",
+        "metric": "http_5xx_rate",
+        "observed": 0.2,
+        "threshold": 1.0,
+        "unit": "%",
+        "started_at": "2025-01-01T00:01:00Z",
+        "url": "https://betterstack.example/incidents/bs-001",
+        "labels": { "signal_type": "errors" }
+      }
+    }
+  }
+]
+
+
