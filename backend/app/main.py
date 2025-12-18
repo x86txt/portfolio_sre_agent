@@ -3,6 +3,7 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.api.router import api_router
 
@@ -49,6 +50,11 @@ def create_app() -> FastAPI:
     @app.get("/healthz")
     def healthz() -> dict:
         return {"ok": True}
+
+    # Serve frontend static files (for production/fly.io deployment)
+    static_dir = Path(__file__).parent.parent / "static"
+    if static_dir.exists():
+        app.mount("/", StaticFiles(directory=str(static_dir), html=True), name="static")
 
     return app
 

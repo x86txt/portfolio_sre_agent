@@ -1,6 +1,10 @@
 import type { Incident, IncidentSummary, LlmModelsResponse } from "./types";
 
-const API_BASE = import.meta.env.PUBLIC_API_BASE_URL || "http://localhost:8000";
+// In production (fly.io), PUBLIC_API_BASE_URL will typically be undefined and we
+// fall back to a relative base ("") so all calls go to the same origin.
+// In local dev, frontend/.env.example sets PUBLIC_API_BASE_URL=http://localhost:8000
+// so the Astro dev server can talk to a locally-running backend.
+const API_BASE = import.meta.env.PUBLIC_API_BASE_URL ?? "";
 
 async function apiFetch(path: string, init?: RequestInit) {
   const res = await fetch(`${API_BASE}${path}`, {

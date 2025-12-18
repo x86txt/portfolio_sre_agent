@@ -198,6 +198,46 @@ The report endpoint can optionally use an LLM for a nicer narrative. It always f
 
 > Want your SRE assistant or LLM to reason about observability data even better? Check out the bundled SRE Skill in [`skills/README.md`](skills/README.md).
 
+## Deployment (fly.io)
+
+### Prerequisites
+- Install [flyctl](https://fly.io/docs/hands-on/install-flyctl/)
+- Sign up/login: `fly auth login`
+
+### Deploy
+
+```bash
+# 1. Create a new fly.io app (first time only)
+fly launch --no-deploy
+
+# 2. Set secrets (LLM API keys)
+fly secrets set OPENAI_API_KEY=your_key_here
+# or
+fly secrets set ANTHROPIC_API_KEY=your_key_here
+
+# 3. Deploy
+fly deploy
+
+# 4. Open in browser
+fly open
+```
+
+### Configuration
+
+The `Dockerfile` uses a multi-stage build:
+1. **Stage 1 (Bun)**: builds the Astro frontend into `frontend/dist/`
+2. **Stage 2 (Python)**: installs FastAPI backend + copies built frontend; serves both from port 8000
+
+The backend serves the frontend static files when deployed, so you get a single-container deployment.
+
+**Environment variables** (set via `fly secrets set` or `fly.toml`):
+- `OPENAI_API_KEY` / `ANTHROPIC_API_KEY` (required for LLM features)
+- `AITRIAGE_OPENAI_MODEL` / `AITRIAGE_ANTHROPIC_MODEL` (optional, defaults to latest)
+- `AITRIAGE_LLM_PROVIDER` (optional: `openai` or `anthropic`)
+- `AITRIAGE_LLM_WEIGHTS` (optional: e.g., `"openai:3,anthropic:1"`)
+
+For more detailed deployment instructions, troubleshooting, and Docker usage, see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
+
 ## Design notes
 
 See [`docs/DECISIONS.md`](docs/DECISIONS.md) for the correlation/impact heuristics and why saturation-only is treated as a capacity warning.
