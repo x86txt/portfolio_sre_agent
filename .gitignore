@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+
+# Node/Bun
+node_modules/
+### bun.lock / bun.lockb should be committed
+
+# Astro
+.astro/
+dist/
+
+# OS
+.DS_Store
+
+# Env
+.env
+.env.*

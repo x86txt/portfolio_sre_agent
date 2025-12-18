@@ -1,0 +1,49 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.venv/
+venv/
+backend/.venv/
+backend/venv/
+
+# Node/Bun (will reinstall in Docker)
+node_modules/
+frontend/node_modules/
+cli/node_modules/
+bun.lockb
+frontend/dist/
+
+# Build artifacts (will rebuild in Docker)
+.astro/
+dist/
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+
+# Env files (use fly secrets instead)
+.env
+.env.*
+backend/.env
+frontend/.env
+
+# Docs and tests (not needed in production image)
+docs/
+backend/tests/
+*.md
+!backend/requirements*.txt
+
+# CLI not deployed
+cli/
+
