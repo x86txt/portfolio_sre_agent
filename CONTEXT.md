@@ -10,6 +10,10 @@ This document provides comprehensive context about the aiTriage project for futu
 
 > **High saturation alone is NOT necessarily an incident** if latency and errors stay normal. This is treated as a "capacity warning" rather than a major incident.
 
+### Deployment
+
+**Fly.io** - Single container, auto-scaling with GitHub integration for automatic deployments
+
 ## Architecture
 
 ### Tech Stack
@@ -28,10 +32,7 @@ This document provides comprehensive context about the aiTriage project for futu
   - Built with Bun/TypeScript
   - Interactive terminal UI for incident management
 
-- **Deployment**: Fly.io
-  - Single-container deployment via Dockerfile
-  - Multi-stage build (Bun for frontend, Python for backend)
-  - SQLite databases stored in persistent volumes
+- **Deployment**: **Fly.io** - Single-container deployment via Dockerfile, multi-stage build, SQLite databases in persistent volumes. Configured with GitHub integration for automatic deployments on commit.
 
 ### Project Structure
 
@@ -54,7 +55,7 @@ aiTriage/
 ├── skills/               # SRE Agent Skill for LLMs
 ├── Dockerfile            # Multi-stage build for Fly.io
 ├── fly.toml             # Fly.io configuration
-└── docker-compose.yml    # Local development (minimal, mostly for reference)
+└── docker-compose.yml    # Local development (minimal)
 
 ```
 
@@ -250,6 +251,7 @@ The system correlates three key signals:
    fly deploy
    ```
 
+
 ## Design Decisions
 
 ### Why SQLite Instead of Redis?
@@ -287,7 +289,7 @@ The system correlates three key signals:
 
 - In-memory incident store (resets on restart)
 - SQLite rate limiting (not distributed across multiple instances)
-- No authentication on admin endpoints
+- No authentication on admin endpoints (security concern for public deployments)
 - Single-container deployment (no horizontal scaling for rate limits)
 
 ## Quick Reference
@@ -332,5 +334,5 @@ curl -X POST http://localhost:8000/api/scenarios/saturation_only
 
 ---
 
-**Last Updated**: 2025-01-XX (after rate limiting implementation)
+**Last Updated**: 2025-12-19 (configured for Fly.io deployment with GitHub integration)
 
