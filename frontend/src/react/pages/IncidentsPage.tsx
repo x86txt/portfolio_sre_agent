@@ -38,6 +38,25 @@ export function IncidentsPage() {
   const [chatModel, setChatModel] = useState<string | undefined>(undefined);
   const [llmMeta, setLlmMeta] = useState<LlmModelsResponse | null>(null);
 
+  // Sanitize input on the client side (defense in depth)
+  const sanitizeInput = (text: string): string => {
+    if (!text) return "";
+    
+    // Remove HTML/XML tags using regex (doesn't require DOM)
+    let sanitized = text.replace(/<[^>]+>/g, "");
+    
+    // Remove control characters except newline (\n) and tab (\t)
+    sanitized = sanitized.replace(/[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f-\x9f]/g, "");
+    
+    // Limit length (10,000 characters to match backend)
+    const MAX_LENGTH = 10000;
+    if (sanitized.length > MAX_LENGTH) {
+      sanitized = sanitized.substring(0, MAX_LENGTH) + "... [truncated]";
+    }
+    
+    return sanitized.trim();
+  };
+
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
@@ -218,9 +237,17 @@ export function IncidentsPage() {
                   setChatBusy(true);
                   setChatError(null);
                   try {
+                    // Sanitize input before sending
+                    const sanitized = sanitizeInput(chatInput);
+                    if (!sanitized) {
+                      setChatError("Input is empty after sanitization");
+                      setShowErrorModal(true);
+                      return;
+                    }
+                    
                     const providerSpecific = chatLlm === "openai" || chatLlm === "anthropic";
                     const effectiveModel = providerSpecific ? chatModel : undefined;
-                    const out = await chatSre(chatInput, chatLlm, effectiveModel);
+                    const out = await chatSre(sanitized, chatLlm, effectiveModel);
                     setChatOutput(out);
                   } catch (e: any) {
                     const errorMsg = String(e?.message || e);

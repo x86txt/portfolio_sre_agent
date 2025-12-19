@@ -5,6 +5,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter
 
 from app.api.state import engine, events
+from app.triage.cache import cache
 from app.triage.models import CamelModel, Provider
 from app.triage.normalize.normalize import normalize_payload
 
@@ -40,6 +41,10 @@ def ingest(req: IngestRequest) -> IngestResponse:
     for ev in alert_events:
         inc = engine.ingest_event(ev)
         incident_ids.append(inc.id)
+        
+        # Invalidate cached reports for this incident (new alerts = updated incident)
+        cache.invalidate_incident(inc.id)
+        
         events.publish(event="alert_ingested", data={"incidentId": inc.id, "service": inc.service, "env": inc.env})
         events.publish(event="incident_updated", data=inc.model_dump(by_alias=True))
 

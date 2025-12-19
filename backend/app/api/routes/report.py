@@ -1,11 +1,13 @@
 from __future__ import annotations
 
+import json
 from typing import Any, Dict
 
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import PlainTextResponse
 
 from app.api.state import store
+from app.triage.cache import cache
 from app.triage.llm.factory import get_llm_client
 from app.triage.models import LlmMode, ReportFormat
 from app.triage.report.generate import generate_report_object
@@ -50,6 +52,32 @@ async def report_incident(
 
     client = get_llm_client(llm)
     if client:
+        # Determine the effective model name for cache key
+        effective_model = model
+        if not effective_model and hasattr(client, "model"):
+            effective_model = getattr(client, "model", "default")
+        if not effective_model:
+            effective_model = "default"
+        
+        # Check cache first
+        cache_key_model = f"{llm.value}:{effective_model}"
+        cached_content = cache.get(incident_id, cache_key_model, format.value)
+        
+        if cached_content:
+            # Return cached content
+            if format == ReportFormat.json:
+                # For JSON, parse the cached content
+                try:
+                    cached_obj = json.loads(cached_content)
+                    return cached_obj
+                except json.JSONDecodeError:
+                    # If parsing fails, fall through to regenerate
+                    pass
+            else:
+                # For markdown/text, return as-is
+                media = "text/markdown" if format == ReportFormat.markdown else "text/plain"
+                return PlainTextResponse(cached_content, media_type=media)
+
         try:
             # Optional per-request model override when the client supports it.
             if model and hasattr(client, "model"):
@@ -60,19 +88,30 @@ async def report_incident(
                 prompt=_report_user_prompt(report=report_obj, fmt=format),
                 temperature=0.2,
             )
+            
+            generated_text = out.text.strip()
+            
             # For json, keep the deterministic shape and attach the narrative.
             if format == ReportFormat.json:
-                report_obj["llmNarrative"] = out.text
+                report_obj["llmNarrative"] = generated_text
                 report_obj["llmProvider"] = out.provider
                 report_obj["llmModel"] = out.model
+                
+                # Cache the JSON response
+                cache.set(incident_id, cache_key_model, format.value, json.dumps(report_obj, default=str))
+                
                 return report_obj
 
+            # Cache the markdown/text response
+            cache.set(incident_id, cache_key_model, format.value, generated_text)
+            
             media = "text/markdown" if format == ReportFormat.markdown else "text/plain"
-            return PlainTextResponse(out.text.strip() + "\n", media_type=media)
+            return PlainTextResponse(generated_text + "\n", media_type=media)
         except Exception:
             # Fall back to deterministic output.
             pass
 
+    # Deterministic fallback (no LLM, no cache needed)
     if format == ReportFormat.json:
         return report_obj
     if format == ReportFormat.text:

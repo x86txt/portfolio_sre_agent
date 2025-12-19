@@ -59,6 +59,35 @@ bun run --cwd cli dev -- demo saturation_only --api http://localhost:8000
 bun run --cwd cli dev -- demo full_outage --api http://localhost:8000
 ```
 
+### 4) Valkey/Redis (Optional - for report caching)
+
+The backend uses Valkey (Redis-compatible) to cache LLM-generated reports, avoiding duplicate API calls when switching between formats (markdown/text/json).
+
+```bash
+# Start Valkey with Docker Compose (persistent mode)
+docker-compose up -d valkey
+
+# Check status
+docker-compose ps
+
+# View logs
+docker-compose logs -f valkey
+
+# Stop
+docker-compose down
+```
+
+The backend will automatically connect to Valkey at `localhost:6379` (default). To customize, set environment variables in `backend/.env`:
+
+```bash
+REDIS_HOST=localhost
+REDIS_PORT=6379
+REDIS_DB=0
+# REDIS_PASSWORD=  # Optional, if your Redis requires auth
+```
+
+**Note**: If Valkey/Redis is unavailable, the backend will gracefully fall back to generating reports on-demand (no caching). Reports are automatically invalidated when incidents are updated (new alerts, resolution changes).
+
 ## Demo scenarios
 
 - `saturation_only`: saturation is critical, **but latency and errors are normal** ⇒ **impact = none**, classification `capacity_warning`.

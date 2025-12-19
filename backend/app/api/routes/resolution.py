@@ -5,6 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, HTTPException
 
 from app.api.state import events, store
+from app.triage.cache import cache
 from app.triage.models import CamelModel, Incident, IncidentStatus, ResolutionStatus
 
 router = APIRouter()
@@ -35,6 +36,10 @@ def update_resolution(incident_id: str, body: ResolutionUpdateRequest) -> Incide
         incident.status = IncidentStatus.resolved
 
     store.upsert(incident)
+    
+    # Invalidate cached reports for this incident (resolution status changed)
+    cache.invalidate_incident(incident_id)
+    
     events.publish(event="incident_updated", data=incident.model_dump(by_alias=True))
     return incident
 
