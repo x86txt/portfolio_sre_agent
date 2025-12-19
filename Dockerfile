@@ -25,7 +25,7 @@ WORKDIR /app
 RUN pip install --no-cache-dir uv
 
 # Copy backend requirements
-COPY backend/requirements.txt backend/requirements-dev.txt ./
+COPY backend/requirements.txt ./
 
 # Install Python dependencies
 RUN uv pip install --system -r requirements.txt
