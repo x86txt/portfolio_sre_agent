@@ -2,11 +2,12 @@ from __future__ import annotations
 
 import re
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 
 from app.triage.llm.factory import get_llm_client
 from app.triage.models import CamelModel, LlmMode
+from app.triage.rate_limit import rate_limiter
 
 router = APIRouter()
 
@@ -51,13 +52,30 @@ class ChatRequest(CamelModel):
     model: str | None = None
 
 
+def _get_client_ip(request: Request) -> str:
+    """Extract client IP address from request, handling proxies."""
+    # Check for X-Forwarded-For header (from Fly.io/proxies)
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        # Take the first IP (original client)
+        return forwarded_for.split(",")[0].strip()
+    
+    # Fall back to direct client IP
+    if request.client:
+        return request.client.host
+    
+    return "unknown"
+
+
 @router.post("/chat")
-async def chat(req: ChatRequest):
+async def chat(req: ChatRequest, request: Request):
     """
     Lightweight SRE chat endpoint.
 
     Takes a free-form prompt with telemetry/incident context and returns a
     concise answer from the configured LLM (or 503 if none is configured).
+    
+    Rate limited to 3 LLM API calls per hour per IP address.
     """
     # Validate and sanitize input
     if not req.prompt or not req.prompt.strip():
@@ -74,6 +92,21 @@ async def chat(req: ChatRequest):
             status_code=503,
             detail="No LLM provider is configured. Set OPENAI_API_KEY or ANTHROPIC_API_KEY.",
         )
+    
+    # Check rate limit before calling LLM
+    client_ip = _get_client_ip(request)
+    allowed, remaining = rate_limiter.check_rate_limit(client_ip)
+    
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail=f"Rate limit exceeded. Maximum 3 LLM API calls per hour. Please try again later.",
+            headers={
+                "X-RateLimit-Limit": "3",
+                "X-RateLimit-Remaining": "0",
+                "Retry-After": "3600",
+            },
+        )
 
     system = (
         "You are an experienced SRE and incident commander.\n"
@@ -88,7 +121,11 @@ async def chat(req: ChatRequest):
 
     try:
         out = await client.generate(system=system, prompt=sanitized_prompt, temperature=0.2)
-        return PlainTextResponse(out.text.strip() + "\n", media_type="text/plain")
+        # Include rate limit headers in response
+        response = PlainTextResponse(out.text.strip() + "\n", media_type="text/plain")
+        response.headers["X-RateLimit-Limit"] = "3"
+        response.headers["X-RateLimit-Remaining"] = str(remaining - 1 if remaining is not None else "?")
+        return response
     except RuntimeError as e:
         # LLM client raised a runtime error (API errors, etc.)
         raise HTTPException(status_code=502, detail=str(e))

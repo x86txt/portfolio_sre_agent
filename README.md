@@ -59,13 +59,22 @@ bun run --cwd cli dev -- demo saturation_only --api http://localhost:8000
 bun run --cwd cli dev -- demo full_outage --api http://localhost:8000
 ```
 
-### 4) Report Caching (Optional - SQLite3)
+### 4) Report Caching & Rate Limiting (SQLite3)
 
-The backend uses SQLite3 to cache LLM-generated reports, avoiding duplicate API calls when switching between formats (markdown/text/json).
+The backend uses SQLite3 for two purposes:
 
-The cache database is automatically created at `backend/cache.db` (or a custom path via `CACHE_DB_DIR` environment variable). No separate service is required - SQLite3 is built into Python.
+**Report Caching**: Caches LLM-generated reports to avoid duplicate API calls when switching between formats (markdown/text/json). The cache database is automatically created at `backend/cache.db` (or a custom path via `CACHE_DB_DIR` environment variable).
 
-**Note**: If SQLite is unavailable, the backend will gracefully fall back to generating reports on-demand (no caching). Reports are automatically invalidated when incidents are updated (new alerts, resolution changes).
+**Rate Limiting**: Enforces a limit of **3 LLM API calls per hour per IP address** (shared across OpenAI and Anthropic). The rate limit database is stored at `backend/rate_limit.db` in the same directory as the cache.
+
+**Key behaviors:**
+- Cached reports don't count toward the rate limit
+- Rate-limited requests to the report endpoint fall back to deterministic output (no error)
+- Rate-limited requests to the chat endpoint return `429 Too Many Requests`
+- Rate limit headers (`X-RateLimit-Limit`, `X-RateLimit-Remaining`) are included in responses
+- Use `/api/admin/unblock-ip?ip_address={ip}` to reset rate limits for an IP
+
+**Note**: If SQLite is unavailable, the backend gracefully falls back to generating reports on-demand (no caching) and allows all requests (no rate limiting). Reports are automatically invalidated when incidents are updated (new alerts, resolution changes).
 
 ## Demo scenarios
 
@@ -96,6 +105,7 @@ bun run --cwd cli dev -- ingest --file samples/scenarios/saturation_only.json --
 - `GET /openapi.json` — OpenAPI 3.1 schema (Swagger compatible)
 - `GET /docs` — Swagger UI (served by FastAPI)
 - `POST /api/chat` — free-form SRE chat (metrics/logs/deployment Q&A)
+- `POST /api/admin/unblock-ip?ip_address={ip}` — unblock/reset rate limit for an IP address
 
 ## API examples
 
@@ -121,6 +131,12 @@ curl -X POST http://localhost:8000/api/chat \
   "prompt": "Here are the metrics from my API service:\n- p95 latency: 340ms (baseline: 180ms)\n- Error rate: 1.2%\n- CPU: 85%\n- Memory: 72%\n\nShould I be concerned?"
 }
 EOF
+```
+
+### Unblock an IP address (Admin)
+
+```bash
+curl -X POST "http://localhost:8000/api/admin/unblock-ip?ip_address=192.168.1.100"
 ```
 
 ### JavaScript / TypeScript (fetch)
@@ -203,6 +219,8 @@ The report endpoint can optionally use an LLM for a nicer narrative. It always f
 - **OpenAI**: `OPENAI_API_KEY` (optional `AITRIAGE_OPENAI_MODEL`)
 - **Anthropic**: `ANTHROPIC_API_KEY` (optional `AITRIAGE_ANTHROPIC_MODEL`, defaults to `claude-sonnet-4-5-20250929`)
 - **Optional default**: `AITRIAGE_LLM_PROVIDER=openai|anthropic`
+
+**Rate Limiting**: LLM API calls are rate-limited to **3 requests per hour per IP address** (shared across OpenAI and Anthropic). Cached reports don't count toward the limit. See the [Report Caching & Rate Limiting](#4-report-caching--rate-limiting-sqlite3) section for details.
 
 > Want your SRE assistant or LLM to reason about observability data even better? Check out the bundled SRE Skill in [`skills/README.md`](skills/README.md).
 
