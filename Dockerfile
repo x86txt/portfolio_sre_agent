@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for aiTriage (fly.io deployment)
 # Stage 1: Build the Astro frontend
-FROM oven/bun:canary-alpineAS frontend-builder
+FROM oven/bun:canary-slim AS frontend-builder
 
 WORKDIR /build
 
