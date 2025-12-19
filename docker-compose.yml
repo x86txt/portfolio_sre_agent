@@ -1,23 +1,5 @@
 version: '3.8'
 
-services:
-  valkey:
-    image: valkey/valkey:9-alpine
-    container_name: aitriage-valkey
-    ports:
-      - "6379:6379"
-    volumes:
-      # Persist data to disk
-      - valkey-data:/data
-    command: --appendonly yes --appendfsync everysec
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "valkey-cli", "ping"]
-      interval: 5s
-      timeout: 3s
-      retries: 5
-
-volumes:
-  valkey-data:
-    driver: local
-
+# Note: This docker-compose.yml is for local development only.
+# The backend uses SQLite3 for report caching (no separate service needed).
+# For production deployment on Fly.io, see README.md

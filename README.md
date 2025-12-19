@@ -59,34 +59,13 @@ bun run --cwd cli dev -- demo saturation_only --api http://localhost:8000
 bun run --cwd cli dev -- demo full_outage --api http://localhost:8000
 ```
 
-### 4) Valkey/Redis (Optional - for report caching)
+### 4) Report Caching (Optional - SQLite3)
 
-The backend uses Valkey (Redis-compatible) to cache LLM-generated reports, avoiding duplicate API calls when switching between formats (markdown/text/json).
+The backend uses SQLite3 to cache LLM-generated reports, avoiding duplicate API calls when switching between formats (markdown/text/json).
 
-```bash
-# Start Valkey with Docker Compose (persistent mode)
-docker-compose up -d valkey
+The cache database is automatically created at `backend/cache.db` (or a custom path via `CACHE_DB_DIR` environment variable). No separate service is required - SQLite3 is built into Python.
 
-# Check status
-docker-compose ps
-
-# View logs
-docker-compose logs -f valkey
-
-# Stop
-docker-compose down
-```
-
-The backend will automatically connect to Valkey at `localhost:6379` (default). To customize, set environment variables in `backend/.env`:
-
-```bash
-REDIS_HOST=localhost
-REDIS_PORT=6379
-REDIS_DB=0
-# REDIS_PASSWORD=  # Optional, if your Redis requires auth
-```
-
-**Note**: If Valkey/Redis is unavailable, the backend will gracefully fall back to generating reports on-demand (no caching). Reports are automatically invalidated when incidents are updated (new alerts, resolution changes).
+**Note**: If SQLite is unavailable, the backend will gracefully fall back to generating reports on-demand (no caching). Reports are automatically invalidated when incidents are updated (new alerts, resolution changes).
 
 ## Demo scenarios
 
@@ -264,6 +243,33 @@ The backend serves the frontend static files when deployed, so you get a single-
 - `AITRIAGE_OPENAI_MODEL` / `AITRIAGE_ANTHROPIC_MODEL` (optional, defaults to latest)
 - `AITRIAGE_LLM_PROVIDER` (optional: `openai` or `anthropic`)
 - `AITRIAGE_LLM_WEIGHTS` (optional: e.g., `"openai:3,anthropic:1"`)
+
+### Report Caching on Fly.io
+
+**Important**: Fly.io builds from the `Dockerfile` and runs a single container. The `docker-compose.yml` file is only for local development and is not used by Fly.io.
+
+The backend uses SQLite3 for report caching, which is built into Python and requires no separate service. The cache database is stored in a persistent volume on Fly.io.
+
+To persist the cache across deployments, create a Fly volume:
+
+```bash
+# Create a persistent volume (first time only)
+fly volumes create cache_data --size 1 --region iad
+
+# Mount it in fly.toml (add this section)
+```
+
+Then add to your `fly.toml`:
+
+```toml
+[[mounts]]
+  source = "cache_data"
+  destination = "/app/cache"
+```
+
+**Note**: The Dockerfile already sets `CACHE_DB_DIR=/app/cache` as the default, so no additional secrets are needed. The cache database will be created at `/app/cache/cache.db` and will persist across deployments thanks to the volume mount.
+
+**Note**: If SQLite is unavailable, the backend gracefully falls back to generating reports on-demand (no caching). Reports are automatically invalidated when incidents are updated.
 
 For more detailed deployment instructions, troubleshooting, and Docker usage, see [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 

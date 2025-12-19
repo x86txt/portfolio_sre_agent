@@ -1,6 +1,6 @@
 # Multi-stage Dockerfile for aiTriage (fly.io deployment)
 # Stage 1: Build the Astro frontend
-FROM oven/bun:1.3-alpine AS frontend-builder
+FROM oven/bun:canary-alpineAS frontend-builder
 
 WORKDIR /build
 
@@ -17,7 +17,7 @@ COPY frontend ./frontend
 RUN bun run --cwd frontend build
 
 # Stage 2: Python backend runtime
-FROM python:3.11-slim
+FROM python:3-slim
 
 WORKDIR /app
 
@@ -35,6 +35,13 @@ COPY backend/app ./app
 
 # Copy built frontend from stage 1
 COPY --from=frontend-builder /build/frontend/dist ./static
+
+# Create cache directory for SQLite database
+# Note: SQLite3 is built into Python (sqlite3 module) and comes with python:3-slim
+RUN mkdir -p /app/cache && chmod 755 /app/cache
+
+# Set default cache directory (can be overridden via env var)
+ENV CACHE_DB_DIR=/app/cache
 
 # Expose port (fly.io defaults to 8080, but we'll use 8000 and configure fly.toml)
 EXPOSE 8000

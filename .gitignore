@@ -20,3 +20,7 @@ dist/
 # Env
 .env
 .env.*
+
+# Cache
+*.db
+cache.db
