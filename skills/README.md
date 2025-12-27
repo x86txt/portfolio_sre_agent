@@ -1,59 +1,54 @@
 # SRE Observability Review Skill
 
-This repo includes an SRE Agent Skill packaged as `skills/sre-skill.zip`. It contains a single file:
+This directory contains an SRE Agent Skill for Claude and other AI assistants.
 
-- `observability-review.skill` — a structured instruction set you can paste into Claude or ChatGPT to improve the quality and consistency of SRE / observability outputs.
+## Files
 
-## 1. Download the skill
+All files are at the root level (required by Claude):
 
-From GitHub:
+- `SKILL.md` — Main skill instructions (required entry point)
+- `EXAMPLES.md` — Detailed scenario walkthroughs
+- `PLATFORMS.md` — Platform-specific guidance (Prometheus, Datadog, etc.)
 
-1. Navigate to the `skills/` directory.
-2. Download `sre-skill.zip`.
-3. Unzip it locally to get `observability-review.skill`.
+## Creating the Skill Archive
 
-The `.skill` file is just text — you can open it in any editor.
+To create a `.zip` for Claude:
 
-## 2. Use with Anthropic Claude
+```bash
+zip -r sre-skill.zip SKILL.md EXAMPLES.md PLATFORMS.md
+```
 
-### Via Claude UI (Projects / custom agent)
+## Use with Anthropic Claude
 
-1. Open Claude in the browser.
-2. Create a new **Project** (or equivalent “agent” space).
-3. Open `observability-review.skill` and copy its entire contents.
-4. Paste that text into the **system / instructions** field of the project.
-5. Save the project as something like **“SRE Observability Triage”**.
+### Direct Import
 
-Claude will now follow those instructions whenever you chat in that project (for triaging incidents, reviewing alert streams, etc.).
+1. Create the zip archive (see above)
+2. Import directly into Claude Projects or workspace
+
+### Manual Setup
+
+1. Create a new **Project** in Claude
+2. Copy the contents of `SKILL.md` into the **system / instructions** field
+3. Optionally add `EXAMPLES.md` and `PLATFORMS.md` as project knowledge
+4. Save the project as something like **"SRE Observability Triage"**
 
 ### Via Claude API
 
-1. Load `observability-review.skill` as a string in your code.
-2. Send it as the **system** message when calling the Claude Messages API, e.g.:
+Load `SKILL.md` as the system message:
 
-   - `messages = [{"role": "system", "content": "<contents of observability-review.skill>"}, …]`
+```python
+messages = [{"role": "system", "content": "<contents of SKILL.md>"}, ...]
+```
 
-3. Your user prompts can then focus on the concrete incident data (logs, metrics, alerts), while the skill guides how Claude structures its response.
+## Use with ChatGPT (OpenAI)
 
-## 3. Use with ChatGPT (OpenAI)
+### Custom GPT
 
-### Custom GPT (ChatGPT UI)
+1. Go to **Explore GPTs → Create**
+2. Paste `SKILL.md` contents into **Instructions / System prompt**
+3. Optionally upload `EXAMPLES.md` and `PLATFORMS.md` as knowledge
+4. Name it **"SRE Observability Review Agent"** and save
 
-1. In ChatGPT, go to **Explore GPTs → Create**.
-2. Under **Instructions / System prompt**, paste the full contents of `observability-review.skill`.
-3. Name it something like **“SRE Observability Review Agent”** and save.
+### OpenAI API
 
-You now have a reusable GPT that applies the same SRE skill instructions.
-
-### OpenAI API (Chat Completions / Assistants)
-
-1. Read `observability-review.skill` into your app.
-2. For **Chat Completions**, send it as the `system` message:
-
-   - `messages = [{"role": "system", "content": "<skill text>"}, …]`
-
-3. For the **Assistants API**, set the skill text as the assistant’s instructions/description when you create or update the assistant.
-
-In both cases, the skill becomes the persistent high-level guidance for how the model should analyze and summarize observability data.
-
-
+Send `SKILL.md` as the `system` message in Chat Completions or set as assistant instructions.
